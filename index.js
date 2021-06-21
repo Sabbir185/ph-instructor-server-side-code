@@ -26,6 +26,8 @@ client.connect(err => {
 
     const jobPostCollection = client.db(`${process.env.DB_DATABASE}`).collection(`${process.env.DB_POST}`);
 
+    const applicationCollection = client.db(`${process.env.DB_DATABASE}`).collection(`${process.env.DB_APPLICATION}`);
+
     // perform actions on the collection object
     app.post('/plan', (req, res) => {
         const info = req.body;
@@ -106,6 +108,41 @@ client.connect(err => {
             { $set: { adminPermission: req.body.adminPermission } })
             .then(result => {
                 res.send(result.modifiedCount > 0);
+            })
+    })
+
+    // view details
+    app.get('/viewDetails/:id', (req, res) => {
+        const id = req.query.id;
+        jobPostCollection.find({ _id: ObjectId(req.params.id) })
+            .toArray((err, doc) => {
+                res.send(doc)
+            })
+    })
+
+    // collect all candidate application
+    app.post('/allApplication', (req, res) => {
+        const apply = req.body;
+        applicationCollection.insertOne(apply)
+            .then(result => {
+                res.send(result.insertedCount > 0);
+            })
+    })
+
+    // collect all candidate application
+    app.get('/allApplicationView', (req, res) => {
+        applicationCollection.find({})
+            .toArray((err, doc) => {
+                res.send(doc)
+            })
+    })
+
+    // filter home page
+    app.get('/filterJob', (req, res) => {
+        const filter = req.query.skill;
+        jobPostCollection.find({ skills: filter })
+            .toArray((err, doc) => {
+                res.send(doc)
             })
     })
 
