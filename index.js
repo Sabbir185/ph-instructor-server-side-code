@@ -146,6 +146,15 @@ client.connect(err => {
             })
     })
 
+    // Employer login, optional
+    app.get('/employerLogin', (req, res) => {
+        const employer = req.query.email;
+        paymentCollection.find({ email: employer })
+            .toArray((err, doc) => {
+                res.send(doc)
+            })
+    })
+
     //  client.close();
 });
 
