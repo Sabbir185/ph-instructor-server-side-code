@@ -9,6 +9,7 @@ require('dotenv').config()
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }))
 
 app.get('/', (req, res) => {
     res.send('Hello World!')
@@ -22,6 +23,8 @@ client.connect(err => {
     const planCollection = client.db(`${process.env.DB_DATABASE}`).collection(`${process.env.DB_PLAN}`);
 
     const paymentCollection = client.db(`${process.env.DB_DATABASE}`).collection(`${process.env.DB_PAY}`);
+
+    const jobPostCollection = client.db(`${process.env.DB_DATABASE}`).collection(`${process.env.DB_POST}`);
 
     // perform actions on the collection object
     app.post('/plan', (req, res) => {
@@ -73,6 +76,34 @@ client.connect(err => {
         const id = req.query.id;
         paymentCollection.updateOne({ id: id },
             { $set: { email: req.body.email, password: req.body.password } })
+            .then(result => {
+                res.send(result.modifiedCount > 0);
+            })
+    })
+
+    // job post collection
+    app.post('/jobPost', (req, res) => {
+        const post = req.body;
+        console.log(post)
+        jobPostCollection.insertOne(post)
+            .then(result => {
+                res.send(result.insertedCount > 0);
+            })
+    })
+
+    // fetch job post collection
+    app.get('/jobViewAdmin', (req, res) => {
+        jobPostCollection.find({})
+            .toArray((err, doc) => {
+                res.send(doc)
+            })
+    })
+
+    // admin permission and update employer post
+    app.patch('/postPermission/:id', (req, res) => {
+        const id = req.query.id;
+        jobPostCollection.updateOne({ _id: ObjectId(req.params.id) },
+            { $set: { adminPermission: req.body.adminPermission } })
             .then(result => {
                 res.send(result.modifiedCount > 0);
             })
